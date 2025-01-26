@@ -1,0 +1,11 @@
+.vscode/
+*.scvd
+*.uvguix
+*.gdimartino
+*.uvoptx
+*.uvprojx
+RTE/
+Objects/
+Listings/
+*kate-swp
+*.mbaker11
