@@ -2,12 +2,13 @@
 Author: Gabe DiMartino
 Lab: Keypad and LCD Interface
 Date Created: January 26, 2025
-Last Modified: January 26, 2025
+Last Modified: January 29, 2025
 Description: Header file for matrix keypad interface functions
 ****************************************************************************/
 
 #ifndef KEYPAD_H
 #define KEYPAD_H
+
 #include <stdint.h>
 
 struct Row {
