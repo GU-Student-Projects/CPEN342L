@@ -12,7 +12,7 @@ int main(void) {
     LCD_init();
     MatrixKeypad_Init();
     
-    LCD_command(LCD_LINE1);\
+    LCD_command(LCD_LINE1);
     
     while(1) {
         key = MatrixKeypad_WaitPress();
