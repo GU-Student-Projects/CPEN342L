@@ -11,7 +11,7 @@ Inputs: None
 Outputs: 16x2 LCD Display
 ****************************************************************************/
 
-#include "../Utils/LCD.h"
+#include "LCD.h"
 
 int main(void) {
     LCD_init();

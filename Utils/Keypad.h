@@ -16,13 +16,7 @@ struct Row {
 };
 typedef const struct Row RowType;
 
-RowType ScanTab[5] = {
-    { 0x01, "123A" },
-    { 0x02, "456B" },
-    { 0x04, "789C" },
-    { 0x08, "E0FD" },
-    { 0x00, " " }
-};
+extern RowType ScanTab[5];
 
 void MatrixKeypad_Init(void);
 char MatrixKeypad_WaitPress(void);

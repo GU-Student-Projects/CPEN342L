@@ -13,8 +13,9 @@ Outputs: 16x2 LCD Display
 ****************************************************************************/
 
 #include "TM4C123GH6PM.h"
-#include "../Utils/LCD.h"
-#include "../Utils/Keypad.h"
+#include "LCD.h"
+#include "Keypad.h"
+#include "delay.h"
 
 int main(void) {
     int col = 0;
@@ -41,7 +42,7 @@ int main(void) {
                 col = 0;
             }
             else {
-                delay_MS(10);
+								delayMs(10);
                 LCD_command(LCD_LINE1);
                 row = 0;
                 col = 0;

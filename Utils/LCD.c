@@ -31,46 +31,55 @@ void LCD_init(void) {
 * PC6 for LCD EN
 */
 void PORTS_init(void) {
-    SYSCTL->RCGCGPIO |= 0x01; // enable clock to GPIOA
-    SYSCTL->RCGCGPIO |= 0x10; // enable clock to GPIOE
-    SYSCTL->RCGCGPIO |= 0x08; // enable clock to GPIOD
-    SYSCTL->RCGCGPIO |= 0x04; // enable clock to GPIOC
+    SYSCTL_RCGCGPIO_R |= 0x1F;  // Enable clock to GPIOA, GPIOE, GPIOD, GPIOC
+
     // PORTA 5-2 LCD D7-D4
-    GPIOA->AMSEL &= ~0x3C; // turn off analog of PORTA 5-2
-    GPIOA->DATA &= ~0x3C; // PORTA 5-2 output low
-    GPIOA->DIR |= 0x3C; // PORTA 5-2 as GPIO output pins
-    GPIOA->DEN |= 0x3C; // PORTA 5-2 as digital pins
+    GPIO_PORTA_AMSEL_R &= ~0x3C;      // Turn off analog functionality on PORTA 5-2
+    GPIO_PORTA_DATA_R &= ~0x3C;       // Clear PORTA 5-2 (set them to low)
+    GPIO_PORTA_DIR_R |= 0x3C;         // Set PORTA 5-2 as output
+    GPIO_PORTA_DEN_R |= 0x3C;         // Enable digital functionality on PORTA 5-2
+
     // PORTE 0 for LCD R/S
-    GPIOE->AMSEL &= ~0x01; // disable analog
-    GPIOE->DIR |= 0x01; // set PORTE 0 as output for CS
-    GPIOE->DEN |= 0x01; // set PORTE 0 as digital pins
-    GPIOE->DATA |= 0x01; // set PORTE 0 idle high
+    GPIO_PORTE_AMSEL_R &= ~0x01;      // Disable analog functionality on PE0
+    GPIO_PORTE_DIR_R |= 0x01;         // Set PE0 as output for LCD RS
+    GPIO_PORTE_DEN_R |= 0x01;         // Enable digital functionality on PE0
+    GPIO_PORTE_DATA_R |= 0x01;        // Set PE0 idle high
+
     // PORTC 6 for LCD EN
-    GPIOC->AMSEL &= ~0x40; // disable analog
-    GPIOC->DIR |= 0x40; // set PORTC 6 as output for CS
-    GPIOC->DEN |= 0x40; // set PORTC 6 as digital pins
-    GPIOC->DATA &= ~0x40; // set PORTC 6 idle low
-    GPIOD->AMSEL &= ~0x80; // disable analog
-    GPIOD->DIR |= 0x80; // set PORTD 7 as output for CS
-    GPIOD->DEN |= 0x80; // set PORTD 7 as digital pins
-    GPIOD->DATA |= 0x80; // set PORTD 7 idle high
+    GPIO_PORTC_AMSEL_R &= ~0x40;      // Disable analog functionality on PC6
+    GPIO_PORTC_DIR_R |= 0x40;         // Set PC6 as output for LCD EN
+    GPIO_PORTC_DEN_R |= 0x40;         // Enable digital functionality on PC6
+    GPIO_PORTC_DATA_R &= ~0x40;       // Set PC6 idle low
+
+    // PORTD 7 for LCD CS
+    GPIO_PORTD_AMSEL_R &= ~0x80;      // Disable analog functionality on PD7
+    GPIO_PORTD_DIR_R |= 0x80;         // Set PD7 as output for LCD CS
+    GPIO_PORTD_DEN_R |= 0x80;         // Enable digital functionality on PD7
+    GPIO_PORTD_DATA_R |= 0x80;        // Set PD7 idle high
 }
+
+
+
 void LCD_nibble_write(char data, unsigned char control) {
     /* populate data bits */
-    GPIOA->DIR |= 0x3C; // PORTA 5-2 as GPIO output pins
-    GPIOA->DATA &= ~0x3C; // clear data bits
-    GPIOA->DATA |= (data & 0xF0) >> 2; // set data bits
+    GPIO_PORTA_DIR_R |= 0x3C;         // Set PORTA 5-2 as GPIO output pins
+    GPIO_PORTA_DATA_R &= ~0x3C;       // Clear data bits on PORTA 5-2
+    GPIO_PORTA_DATA_R |= (data & 0xF0) >> 2;  // Set upper nibble (data bits)
+
     /* set R/S bit */
     if (control & RS)
-        GPIOE->DATA |= 1;
+        GPIO_PORTE_DATA_R |= 1;      // Set RS (PE0) high if control indicates RS
     else
-        GPIOE->DATA &= ~1;
+        GPIO_PORTE_DATA_R &= ~1;     // Set RS (PE0) low if control indicates RS
+    
     /* pulse E */
-    GPIOC->DATA |= 1 << 6;
-    delayMs(0);
-    GPIOC->DATA &= ~(1 << 6);
-    GPIOA->DIR &= ~0x3C; // PORTA 5-2 as GPIO input pins
+    GPIO_PORTC_DATA_R |= 1 << 6;     // Set the EN (PC6) high
+    delayMs(0);                      // Delay for a small period
+    GPIO_PORTC_DATA_R &= ~(1 << 6);  // Set the EN (PC6) low
+
+    GPIO_PORTA_DIR_R &= ~0x3C;        // Set PORTA 5-2 as GPIO input pins (after write)
 }
+
 void LCD_command(unsigned char command) {
     LCD_nibble_write(command & 0xF0, 0); // upper nibble first
     LCD_nibble_write(command << 4, 0); // then lower nibble
