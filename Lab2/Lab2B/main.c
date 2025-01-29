@@ -1,3 +1,17 @@
+// main.c
+/****************************************************************************
+Author: Gabe DiMartino
+Lab: Keypad and LCD Interface
+Date Created: January 26, 2025
+Last Modified: January 29, 2025
+Description: This program interfaces with a 4x4 matrix keypad and 16x2 LCD.
+Keys pressed are displayed on the LCD. At the end of the first row,
+display moves to second row. When second row fills, display clears
+after 1 second delay and returns to first row.
+Inputs: 4x4 Matrix Keypad
+Outputs: 16x2 LCD Display
+****************************************************************************/
+
 #include "TM4C123GH6PM.h"
 #include "LCD.h"
 #include "Keypad.h"
