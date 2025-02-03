@@ -1,87 +1,130 @@
-/****************************************************************************
-Author: Gabe DiMartino
-Lab: Keypad and LCD Interface
-Date Created: January 26, 2025
-Last Modified: January 29, 2025
-Description: Implementation of matrix keypad interface functions
-****************************************************************************/
+// lcd.c 
 
-#include "TM4C123GH6PM.h"
-#include "Keypad.h"
-#include "delay.h"
+/**************************************************************************** 
+Author: Gabe DiMartino 
+Lab: Keypad and LCD Interface 
+Date Created: January 26, 2025 
+Last Modified: January 26, 2025 
+Description: Implementation of LCD control functions 
 
-RowType ScanTab[5] = {
-    { 0x01, "123A" },
-    { 0x02, "456B" },
-    { 0x04, "789C" },
-    { 0x08, "E0FD" },
-    { 0x00, "" }
-};
+****************************************************************************/  
 
-void MatrixKeypad_Init(void) {
-    SYSCTL->RCGCGPIO |= 0x09;
-    while ((SYSCTL->PRGPIO & 0x09) != 0x09);
+#include "LCD.h" 
+#include "delay.h" 
 
-    GPIOA->AFSEL &= ~0x3C;
-    GPIOA->AMSEL &= ~0x3C;
-    GPIOA->PCTL &= ~0x00FFFF00;
-    GPIOA->DEN |= 0x3C;
-    GPIOA->DIR &= ~0x3C;
-    GPIOA->PUR |= 0x3C;
 
-    GPIOD->AFSEL &= ~0x0F;
-    GPIOD->AMSEL &= ~0x0F;
-    GPIOD->PCTL &= ~0x0000FFFF;
-    GPIOD->DEN |= 0x0F;
-    GPIOD->DIR &= ~0x0F;
-    GPIOD->DR8R |= 0x0F;
-}
+void LCD_init(void) { 
+    PORTS_init(); 
+    delayMs(20); // LCD controller reset sequence 
+    LCD_nibble_write(0x30, 0); 
+    delayMs(5); 
+    LCD_nibble_write(0x30, 0); 
+    delayMs(1); 
+    LCD_nibble_write(0x30, 0); 
+    delayMs(1); 
+    LCD_nibble_write(0x20, 0); // use 4-bit data mode 
+    delayMs(1); 
+    LCD_command(0x28); // set 4-bit data, 2-line, 5x7 font 
+    LCD_command(0x06); // move cursor right 
+    LCD_command(0x01); // clear screen, move cursor to home 
+    LCD_command(0x0F); // turn on display, cursor blinking 
 
-char MatrixKeypad_Scan(int32_t *Num) {
-    RowType *pt = ScanTab;
-    uint32_t column;
-    char key = 0;
-    uint32_t j;
-    *Num = 0;
+} 
 
-    while (pt->direction) {
-        GPIOD->DIR = pt->direction;
-        GPIOD->DATA &= ~0x0F;
-        for (j = 1; j <= 10; j++);
+ 
 
-        column = (GPIOA->DATA & 0x3C) >> 2;
-        for (j = 0; j <= 3; j++) {
-            if ((column & 0x01) == 0) {
-                key = pt->keycode[j];
-                (*Num)++;
-            }
-            column >>= 1;
-        }
-        pt++;
-    }
-    return key;
-}
+/* PA2-PA5 for LCD D4-D7, respectively. 
 
-char MatrixKeypad_WaitPress(void) {
-    char key, lastKey;
-    int32_t n;
+ * PE0 for LCD R/S 
 
-    do {
-        lastKey = MatrixKeypad_Scan(&n);
-        delayMs(20);
-        key = MatrixKeypad_Scan(&n);
-    } while (n != 1 || key != lastKey);
+ * PC6 for LCD EN 
 
-    return key;
-}
+ */ 
 
-void MatrixKeypad_WaitRelease(void) {
-    int32_t n;
-    char key1, key2;
+void PORTS_init(void) { 
+    SYSCTL->RCGCGPIO |= 0x01;   // enable clock to GPIOA 
+    SYSCTL->RCGCGPIO |= 0x10;   // enable clock to GPIOE 
+    SYSCTL->RCGCGPIO |= 0x08;   // enable clock to GPIOD 
+    SYSCTL->RCGCGPIO |= 0x04;   // enable clock to GPIOC 
+    // PORTA 5-2 LCD D7-D4 
+    GPIOA->AMSEL &= ~0x3C;      // turn off analog of PORTA 5-2 
+    GPIOA->DATA &= ~0x3C;       // PORTA 5-2 output low 
+    GPIOA->DIR |= 0x3C;         // PORTA 5-2 as GPIO output pins 
+    GPIOA->DEN |= 0x3C;         // PORTA 5-2 as digital pins 
 
-    do {
-        key1 = MatrixKeypad_Scan(&n);
-        delayMs(20);
-        key2 = MatrixKeypad_Scan(&n);
-    } while (n != 0 || key1 != key2);
-}
+    // PORTE 0 for LCD R/S 
+    GPIOE->AMSEL &= ~0x01;      // disable analog 
+    GPIOE->DIR |= 0x01;         // set PORTE 0 as output for CS 
+    GPIOE->DEN |= 0x01;         // set PORTE 0 as digital pins 
+    GPIOE->DATA |= 0x01;        // set PORTE 0 idle high 
+ 
+
+    // PORTC 6 for LCD EN 
+    GPIOC->AMSEL &= ~0x40;      // disable analog 
+    GPIOC->DIR |= 0x40;         // set PORTC 6 as output for CS 
+    GPIOC->DEN |= 0x40;         // set PORTC 6 as digital pins 
+    GPIOC->DATA &= ~0x40;       // set PORTC 6 idle low  
+
+    GPIOD->AMSEL &= ~0x80;      // disable analog 
+    GPIOD->DIR |= 0x80;         // set PORTD 7 as output for CS 
+    GPIOD->DEN |= 0x80;         // set PORTD 7 as digital pins 
+    GPIOD->DATA |= 0x80;        // set PORTD 7 idle high 
+} 
+
+ 
+
+void LCD_nibble_write(char data, unsigned char control) { 
+
+    /* populate data bits */ 
+    GPIOA->DIR |= 0x3C;         // PORTA 5-2 as GPIO output pins 
+    GPIOA->DATA &= ~0x3C;       // clear data bits 
+    GPIOA->DATA |= (data & 0xF0) >> 2;  // set data bits 
+ 
+    /* set R/S bit */ 
+
+    if (control & RS) 
+        GPIOE->DATA |= 1; 
+    else 
+        GPIOE->DATA &= ~1; 
+
+ 
+
+    /* pulse E */ 
+    GPIOC->DATA |= 1 << 6; 
+    delayMs(0); 
+    GPIOC->DATA &= ~(1 << 6); 
+    GPIOA->DIR &= ~0x3C;        // PORTA 5-2 as GPIO input pins 
+
+} 
+
+ 
+
+void LCD_command(unsigned char command) { 
+    LCD_nibble_write(command & 0xF0, 0); // upper nibble first 
+    LCD_nibble_write(command << 4, 0); // then lower nibble 
+    if (command < 4) 
+        delayMs(2); // command 1 and 2 needs up to 1.64ms 
+    else 
+        delayMs(1); // all others 40 us 
+
+} 
+
+ 
+
+void LCD_data(char data) { 
+    LCD_nibble_write(data & 0xF0, RS); // upper nibble first 
+    LCD_nibble_write(data << 4, RS); // then lower nibble 
+    delayMs(1); 
+
+} 
+
+ 
+
+void LCD_Str(const char *str) { 
+    while (*str != '\0') { 
+        LCD_data(*str); 
+        str++; 
+
+    } 
+
+} 
