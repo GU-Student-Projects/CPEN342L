@@ -39,6 +39,9 @@ int main(void) {
 
         key = MatrixKeypad_GetKey();
         if (key != 0) {
+            if (key >= 'A' && key <= 'F') {
+                key = 10 + (key - 'A');
+            }
             BarGraphLED_Display((uint8_t)key);
         }
 
