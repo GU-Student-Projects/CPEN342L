@@ -10,7 +10,8 @@ Description: Implementation of LCD control functions
 ****************************************************************************/  
 
 #include "LCD.h" 
-#include "delay.h" 
+#include "delay.h"
+#include "tm4c123gh6pm.h"
 
 
 void LCD_init(void) { 

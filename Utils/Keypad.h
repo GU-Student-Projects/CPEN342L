@@ -2,8 +2,8 @@
 Author: Gabe DiMartino
 Lab: Keypad and LCD Interface
 Date Created: January 26, 2025
-Last Modified: January 29, 2025
-Description: Header file for matrix keypad interface functions
+Last Modified: February 3, 2025
+Description: Header file for matrix keypad interface functions (non-blocking)
 ****************************************************************************/
 
 #ifndef KEYPAD_H
@@ -20,8 +20,7 @@ typedef const struct Row RowType;
 extern RowType ScanTab[5];
 
 void MatrixKeypad_Init(void);
-char MatrixKeypad_WaitPress(void);
-void MatrixKeypad_WaitRelease(void);
-char MatrixKeypad_Scan(int32_t *n);
+char MatrixKeypad_GetKey(void);
+char MatrixKeypad_Scan(void);
 
 #endif

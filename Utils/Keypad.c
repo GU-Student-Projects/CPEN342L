@@ -2,8 +2,8 @@
 Author: Gabe DiMartino
 Lab: Keypad and LCD Interface
 Date Created: January 26, 2025
-Last Modified: January 29, 2025
-Description: Implementation of matrix keypad interface functions
+Last Modified: February 3, 2025
+Description: Implementation of matrix keypad interface functions (non-blocking)
 ****************************************************************************/
 
 #include "TM4C123GH6PM.h"
@@ -17,6 +17,9 @@ RowType ScanTab[5] = {
     { 0x08, "E0FD" },
     { 0x00, "" }
 };
+
+static char lastKey = 0;
+static uint8_t keyPressed = 0;
 
 void MatrixKeypad_Init(void) {
     SYSCTL->RCGCGPIO |= 0x09;
@@ -37,12 +40,11 @@ void MatrixKeypad_Init(void) {
     GPIOD->DR8R |= 0x0F;
 }
 
-char MatrixKeypad_Scan(int32_t *Num) {
+char MatrixKeypad_Scan(void) {
     RowType *pt = ScanTab;
     uint32_t column;
     char key = 0;
     uint32_t j;
-    *Num = 0;
 
     while (pt->direction) {
         GPIOD->DIR = pt->direction;
@@ -53,35 +55,25 @@ char MatrixKeypad_Scan(int32_t *Num) {
         for (j = 0; j <= 3; j++) {
             if ((column & 0x01) == 0) {
                 key = pt->keycode[j];
-                (*Num)++;
+                return key;
             }
             column >>= 1;
         }
         pt++;
     }
-    return key;
+    return 0;
 }
 
-char MatrixKeypad_WaitPress(void) {
-    char key, lastKey;
-    int32_t n;
+char MatrixKeypad_GetKey(void) {
+    char key = MatrixKeypad_Scan();
 
-    do {
-        lastKey = MatrixKeypad_Scan(&n);
-        delayMs(20);
-        key = MatrixKeypad_Scan(&n);
-    } while (n != 1 || key != lastKey);
-
-    return key;
-}
-
-void MatrixKeypad_WaitRelease(void) {
-    int32_t n;
-    char key1, key2;
-
-    do {
-        key1 = MatrixKeypad_Scan(&n);
-        delayMs(20);
-        key2 = MatrixKeypad_Scan(&n);
-    } while (n != 0 || key1 != key2);
+    if (key != 0 && keyPressed == 0) {
+        lastKey = key;
+        keyPressed = 1;
+        return key;
+    }
+    if (key == 0) {
+        keyPressed = 0;
+    }
+    return 0;
 }
