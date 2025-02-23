@@ -10,18 +10,17 @@ Description: SSI header
 #define SSI_DRIVER_H
 
 #include <stdint.h>
-#include <stdbool.h>
-#include "tm4c123gh6pm.h"
+#include "TM4C123GH6PM.h"
 
-#define SSI0_BASE_ADDR      0x40008000  // Base address for SSI0
-#define SSI_CLOCK_RATE      5000000     // 5 MHz baud rate
+// Define Load Pin for 74HC165 (connected to PE3)
+#define PORTG_LOAD_PIN (1U << 3)
+// Define Latch Pin for 74HC595 (connected to PD1)
+#define PORTH_LATCH_PIN (1U << 1)
 
-// Define Control Pins for 74HC165 and 74HC595
-#define PORTG_LOAD_PIN      (1U << 3)   // PE3 for 74HC165 Load
-#define PORTH_LATCH_PIN     (1U << 1)   // PD1 for 74HC595 Latch
+void SSI_Init(void);         // Initialize SSI and GPIOs
+void SSI_Write(uint8_t data); // Write to 74HC595 (PortH)
+uint8_t SSI_Read(void);      // Read from 74HC165 (PortG)
 
-void SSI_Init(void);
-uint8_t SSI_Read_PortG(void);
-void SSI_Write_PortH(uint8_t data);
+#endif // SSI_DRIVER_H
 
-#endif
+

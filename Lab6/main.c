@@ -9,12 +9,13 @@ Description: DIP switch in LED bargraph out
 #include "ssi_driver.h"
 
 int main(void) {
-    uint8_t inputData;
-    
-    SSI_Init(); // Initialize SSI bus
+    uint8_t switchData;
+
+    SSI_Init();
 
     while (1) {
-        inputData = SSI_Read_PortG(); // Read switch states
-        SSI_Write_PortH(inputData);   // Output same value to LEDs
+        switchData = SSI_Read(); // Read from 74HC165
+        SSI_Write(switchData);   // Output to 74HC595
     }
 }
+
