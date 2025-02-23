@@ -12,10 +12,12 @@ Description: SSI header
 #include <stdint.h>
 #include "TM4C123GH6PM.h"
 
-// Define Load Pin for 74HC165 (connected to PE3)
-#define PORTG_LOAD_PIN (1U << 3)
-// Define Latch Pin for 74HC595 (connected to PD1)
-#define PORTH_LATCH_PIN (1U << 1)
+#define PORTG_LOAD_PIN (1U << 3) // Load Pin PE3
+#define PORTH_LATCH_PIN (1U << 1) // Latch Pin PD1
+#define SSI0_CLK_PIN  (1U << 2)  // PA2
+#define SSI0_MISO_PIN (1U << 3)  // PA3
+#define SSI0_MOSI_PIN (1U << 5)  // PA5
+#define SSI0_PINS     (SSI0_CLK_PIN | SSI0_MISO_PIN | SSI0_MOSI_PIN)
 
 void SSI_Init(void);         // Initialize SSI and GPIOs
 void SSI_Write(uint8_t data); // Write to 74HC595 (PortH)

@@ -15,10 +15,10 @@ void SSI_Init(void) {
     while ((SYSCTL->PRGPIO & ((1U << 0) | (1U << 3) | (1U << 4))) == 0) {}; // Wait for readiness
 
     // Configure SSI0 on PA2, PA3, PA5
-    GPIOA->AFSEL |= 0x2C;
+    GPIOA->AFSEL |= SSI0_PINS;
     GPIOA->PCTL = (GPIOA->PCTL & 0xFF0F00FF) + 0x00202200;
-    GPIOA->AMSEL &= ~0x2C;
-    GPIOA->DEN |= 0x2C;
+    GPIOA->AMSEL &= ~SSI0_PINS;
+    GPIOA->DEN |= SSI0_PINS;
 
     // Configure SSI as SPI Mode 0 (SPO = 0, SPH = 0)
     SSI0->CR1 = 0x00;  // Disable SSI, set as master
@@ -34,6 +34,7 @@ void SSI_Init(void) {
     GPIOD->DIR |= PORTH_LATCH_PIN;
     GPIOD->DEN |= PORTH_LATCH_PIN;
 }
+
 
 void SSI_Write(uint8_t data) {
     while ((SSI0->SR & 0x02) == 0) {}; // Wait until FIFO is not full
