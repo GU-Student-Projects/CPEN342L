@@ -9,7 +9,7 @@ Description: DIP switch in LED bargraph out
 #include "ssi_driver.h"
 
 int main(void) {
-    uint8_t switchData;
+    unsigned char switchData;
 
     SSI_Init();
 
