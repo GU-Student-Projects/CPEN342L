@@ -2,10 +2,9 @@
 Author: Gabe DiMartino
 Lab: Input Capture Functions
 Date Created: March 4, 2025
-Last Modified: March 4, 2025
+Last Modified: March 5, 2025
 Description: Main file for reaction timing
 ****************************************************************************/
-
 #include "ReactionTimer.h"
 #include "LCD.h"
 #include "delay.h"
@@ -13,13 +12,9 @@ Description: Main file for reaction timing
 int main(void) {
     char timeStr[16];  // Buffer for formatting time string
     
-    // Enable global interrupts
-    __enable_irq();
-    
     // Initialize modules
     LCD_init();              // Initialize LCD using your existing function
-    LED_Init();              // Initialize LED
-    ReactionTimer_Init();    // Initialize reaction timer
+    ReactionTimer_Init();    // Initialize reaction timer (now includes LED initialization)
     
     // Welcome message
     LCD_Clear();
@@ -29,7 +24,7 @@ int main(void) {
     LCD_Str("Press SW1 start");
     
     while (1) {
-        uint8_t status = ReactionTime_Status();
+        uint8_t status = ReactionTimer_Status();  // Changed from ReactionTime_Status
         
         // Check if a measurement is complete
         if (status == 2) {
@@ -57,11 +52,11 @@ int main(void) {
             LCD_Str("start again");
             
             // Reset the reaction timer for a new measurement
-            ReactionTime_Reset();
+            ReactionTimer_Reset();  // Changed from ReactionTime_Reset
         }
         
         // If timer is waiting for second button press, update display
-        else if (status == 1 && GPIOF->DATA & 0x02) {  // Check if LED is on
+        else if (status == 1) {  // LED check removed since it's handled by timer state
             LCD_Clear();
             LCD_SetCursor(0, 0);
             LCD_Str("LED is ON");
