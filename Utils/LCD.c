@@ -11,8 +11,6 @@ Description: Implementation of LCD control functions
 
 #include "LCD.h" 
 #include "delay.h"
-#include "tm4c123gh6pm.h"
-
 
 void LCD_init(void) { 
     PORTS_init(); 
@@ -32,15 +30,6 @@ void LCD_init(void) {
 
 } 
 
- 
-
-/* PA2-PA5 for LCD D4-D7, respectively. 
-
- * PE0 for LCD R/S 
-
- * PC6 for LCD EN 
-
- */ 
 
 void PORTS_init(void) { 
     SYSCTL->RCGCGPIO |= 0x01;   // enable clock to GPIOA 
@@ -110,7 +99,6 @@ void LCD_command(unsigned char command) {
 
 } 
 
- 
 
 void LCD_data(char data) { 
     LCD_nibble_write(data & 0xF0, RS); // upper nibble first 
@@ -119,7 +107,6 @@ void LCD_data(char data) {
 
 } 
 
- 
 
 void LCD_Str(const char *str) { 
     while (*str != '\0') { 
@@ -129,3 +116,25 @@ void LCD_Str(const char *str) {
     } 
 
 } 
+
+void LCD_Clear(void) {
+    LCD_command(RS);    // Clear display command
+    delayMs(2);           // Need to wait >1.5ms
+}
+
+void LCD_Home(void) {
+    LCD_command(HOME);    // Return home command
+    delayMs(2);           // Need to wait >1.5ms
+}
+
+void LCD_SetCursor(unsigned char row, unsigned char col) {
+    unsigned char address;
+    
+    // Calculate the DDRAM address based on row and column
+    if (row == 0)
+        address = LCD_LINE1 + col;  // First line starts at 0x80
+    else
+        address = LCD_LINE2 + col;  // Second line starts at 0xC0
+    
+    LCD_command(address);      // Set DDRAM address command
+}

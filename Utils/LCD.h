@@ -13,16 +13,20 @@ Description: Header file for LCD control functions
 #include "TM4C123GH6PM.h"
 #include <stdint.h>
 
-#define RS 1
+#define RS 0x01
 #define EN 2
+#define HOME 0x02
 #define LCD_LINE1 0x80
 #define LCD_LINE2 0xC0
 
-void LCD_init(void);
-void PORTS_init(void);
-void LCD_nibble_write(char data, unsigned char control);
-void LCD_command(unsigned char command);
-void LCD_data(char data);
-void LCD_Str(const char *str);
+void PORTS_init(void);                  // Initialize GPIO ports for LCD
+void LCD_init(void);                    // Initialize LCD
+void LCD_nibble_write(char data, unsigned char control); // Write 4-bits to LCD
+void LCD_command(unsigned char command); // Send command to LCD
+void LCD_data(char data);               // Send data to LCD
+void LCD_Str(const char *str);          // Display a string on LCD
+void LCD_Clear(void);                   // Clear the LCD display
+void LCD_Home(void);                    // Return cursor to home position
+void LCD_SetCursor(unsigned char row, unsigned char col); // Set cursor position
 
 #endif
