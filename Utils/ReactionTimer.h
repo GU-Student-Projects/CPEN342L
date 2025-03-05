@@ -22,15 +22,12 @@ void PortF_Init(void);                  // Initialize Port F for LEDs and switch
 void LED_Red_On(void);                  // Turn on red LED (PF1)
 void LED_Red_Off(void);                 // Turn off red LED (PF1)
 
-// Function prototypes for switches
-uint32_t Switch_Input1(void);           // Read SW1 (PF4)
-uint32_t Switch_Input2(void);           // Read SW2 (PF0)
 
 // External declarations for global variables
 extern volatile uint32_t FirstCaptureTime;  // Time of first button press
 extern volatile uint32_t SecondCaptureTime; // Time of second button press
 extern volatile uint32_t ReactionPeriod;    // Time difference between captures
-extern volatile uint32_t OutputReady;       // Flag to indicate measurement is ready
+extern volatile uint8_t OutputReady;       // Flag to indicate measurement is ready
 extern volatile uint8_t TimerState;         // 0=ready, 1=waiting for second press, 2=completed
 
 #endif // REACTIONTIMER_H

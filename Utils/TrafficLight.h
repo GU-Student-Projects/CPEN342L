@@ -1,11 +1,3 @@
-/****************************************************************************
-Author: Gabe DiMartino
-Lab: Periodic Interrupt-Driven Traffic Lights
-Date Created: February 16, 2025
-Last Modified: February 16, 2025
-
-Description: Traffic Light LED interface functions.
-****************************************************************************/
 #ifndef TRAFFICLIGHT_H
 #define TRAFFICLIGHT_H
 

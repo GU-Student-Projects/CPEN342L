@@ -8,6 +8,7 @@ Description: Main file for reaction timing
 #include "ReactionTimer.h"
 #include "LCD.h"
 #include "delay.h"
+#include <stdio.h>
 
 int main(void) {
     char timeStr[16];  // Buffer for formatting time string

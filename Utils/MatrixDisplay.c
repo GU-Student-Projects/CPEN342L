@@ -1,11 +1,3 @@
-/****************************************************************************
-Author: Gabe DiMartino
-Lab: 3x5 LCD Interface
-Date Created: February 9, 2025
-Last Modified: February 9, 2025
-Description: 3x5 LED matrix implementation
-****************************************************************************/
-
 #include "delay.h"
 #include "MatrixDisplay.h"
 #include "tm4c123gh6pm.h"

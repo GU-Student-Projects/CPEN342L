@@ -1,12 +1,3 @@
-/****************************************************************************
-Author: Gabe DiMartino
-Lab: Periodic Interrupt-Driven Traffic Lights
-Date Created: February 16, 2025
-Last Modified: February 16, 2025
-
-Description: Implementation of Traffic Light LED interface functions.
-****************************************************************************/
-
 #include "TrafficLight.h"
 
 static const uint32_t STATE_DELAYS[] = {10, 2, 1, 10, 2, 1};  // Delays in seconds

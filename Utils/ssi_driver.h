@@ -9,13 +9,13 @@ Description: SSI header
 #ifndef SSI_DRIVER_H
 #define SSI_DRIVER_H
 
+#include <stdint.h>
 #include "TM4C123GH6PM.h"
-#include "delay.h"
 
-void SSI_Init(void);
-void SSI_Write(unsigned char data); 
-unsigned char SSI_Read(void);
+void SSI1_Init(void);
+void SSI1_Write(unsigned char data); 
+unsigned char SSI1_Read(void);
 
-#endif
+#endif // SSI_DRIVER_H
 
 

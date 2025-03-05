@@ -8,9 +8,10 @@ Description: SSI implementation
 
 #include "ssi_driver.h"
 
+
 void SSI_Init(void) {
     SYSCTL->RCGCSSI |= 0x02;  //Enable clock for SSI1
-    SYSCTL->RCGCGPIO |= 0x018; //Enable clock for Port D and E
+    SYSCTL-> RCGCGPIO |= 0x018; //Enable clock for Port D and E
     while ((SYSCTL->PRGPIO & 0x18) == 0) {}; //Wait for Port D, E
 
     GPIOD->AFSEL |= 0x0F;  //Pins 0 1 2 3 
@@ -27,6 +28,7 @@ void SSI_Init(void) {
     GPIOE->DEN |= 0x08;  
 		GPIOE->DATA=0x08; //Default state high
 }
+
 
 void SSI_Write(unsigned char data) {
     while ((SSI1->SR & 2) == 0) {}; //Wait until FIFO not full
