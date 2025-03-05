@@ -93,11 +93,7 @@ void TIMER1A_Handler(void) {
         SecondCaptureTime = TIMER1->TAR;
 
         // Handle wraparound case
-        if (FirstCaptureTime >= SecondCaptureTime) {
-				ReactionPeriod = FirstCaptureTime - SecondCaptureTime;
-				} else {
-						ReactionPeriod = (0xFFFFFF - SecondCaptureTime) + FirstCaptureTime;
-				}
+        ReactionPeriod = SecondCaptureTime;
         
         TimerState = 2;
         OutputReady = 1;
