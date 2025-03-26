@@ -12,8 +12,8 @@ Description: SSI header
 #include <stdint.h>
 #include "TM4C123GH6PM.h"
 
-void SSI1_Init(void);
-void SSI1_Write(unsigned char data); 
+void SSI_Init(void);
+void SSI_Write(unsigned char data); 
 unsigned char SSI1_Read(void);
 
 #endif // SSI_DRIVER_H

@@ -14,6 +14,7 @@ void DIPSwitch_Init(void) {
     while ((SYSCTL->PRGPIO & 0x02) == 0);
     GPIOB->DIR &= ~0x0F; // Set PB0-PB3 as input
     GPIOB->DEN |= 0x0F;  // Enable digital function
+		GPIOB->PUR &= ~0x0F;
 }
 
 uint8_t DIPSwitch_Read(void) {
