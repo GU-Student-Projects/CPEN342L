@@ -10,6 +10,7 @@ Description:ommeter main
 #include "LCD.h"
 #include "tm4c123gh6pm.h"
 #include "delay.h"
+#include <stdio.h>
 
 // Initialize Port A, bit 7 (PA7) as input for comparator output
 void PortA_Init(void) {
@@ -67,7 +68,7 @@ int main(void) {
     LCD_Clear();
     LCD_SetCursor(0, 0);
     LCD_Str("Ohmmeter Ready");
-    LCD_SetCursor(0, 1);
+    LCD_SetCursor(1, 0);
     LCD_Str("Press SW1");
     
     // Variables for resistance measurement
@@ -77,7 +78,7 @@ int main(void) {
     uint8_t measurement_active = 0;
     
     // Define R_B value in ohms (from lab calculation)
-    const uint16_t R_B = 230;  // Chosen within the valid range (150Ω to 15,000Ω)
+    const uint16_t R_B = 242;
     
     while (1) {
         // Check if SW1 is pressed (active low)
@@ -143,7 +144,7 @@ int main(void) {
             
             // Convert resistance to string and display
             resistance_to_str(resistorValue, resistance_str);
-            LCD_SetCursor(0, 1);
+            LCD_SetCursor(1, 0);
             LCD_Str(resistance_str);
             
             // Measurement complete
@@ -156,9 +157,9 @@ int main(void) {
             }
             
             // Now wait for next button press to reset
-            LCD_SetCursor(0, 1);
+            LCD_SetCursor(1, 0);
             LCD_Str(resistance_str);
-            LCD_SetCursor(12, 1);
+            LCD_SetCursor(1, 12);
             LCD_Str("RST");
             
             // Wait indefinitely until button is pressed again
