@@ -1,3 +1,12 @@
+/**************************************************************************** 
+Author: Gabe DiMartino 
+Lab: Digital Signal Analyzer 
+Date Created: April 15, 2025 
+Last Modified: April 15, 2025 
+Description: Header of DSA
+
+****************************************************************************/  
+
 // adc_driver.h
 
 #ifndef ADC_DRIVER_H

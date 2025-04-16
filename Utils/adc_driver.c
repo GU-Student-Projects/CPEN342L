@@ -1,3 +1,12 @@
+/**************************************************************************** 
+Author: Gabe DiMartino 
+Lab: Digital Signal Analyzer 
+Date Created: April 15, 2025 
+Last Modified: April 15, 2025 
+Description: Implementation of DSA
+
+****************************************************************************/  
+
 #include "TM4C123GH6PM.h"
 
 void ADC1_InitCh8(void) {
@@ -12,7 +21,7 @@ void ADC1_InitCh8(void) {
     GPIOE->DEN &= ~0x20;        // Disable digital I/O
     GPIOE->AMSEL |= 0x20;       // Enable analog mode on PE5
 
-    ADC1->PC = 0x01;            // 125K samples/sec
+    ADC1->PC = 0x05;            // 500K samples/sec
     ADC1->SSPRI = 0x3210;       // Sequencer 3 lowest priority
     ADC1->ACTSS &= ~0x08;       // Disable SS3 during setup
     ADC1->EMUX &= ~0xF000;      // Software trigger

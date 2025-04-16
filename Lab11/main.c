@@ -1,3 +1,12 @@
+/**************************************************************************** 
+Author: Gabe DiMartino 
+Lab: Digital Signal Analyzer 
+Date Created: April 15, 2025 
+Last Modified: April 15, 2025 
+Description: Implementation of DSA
+
+****************************************************************************/  
+
 #include "TM4C123GH6PM.h"
 #include "adc_driver.h"
 #include "LCD.h"
@@ -7,7 +16,8 @@
 
 #define THRESHOLD 2000
 #define MAX_SAMPLES 10000
-#define SAMPLE_DELAY_US 4
+#define TIMEOUT_LIMIT MAX_SAMPLES
+#define SAMPLE_DELAY_US 2
 
 // Struct to hold signal data
 typedef struct {
@@ -26,7 +36,7 @@ float adc_to_voltage(uint16_t val);
 int main(void) {
     ADC1_InitCh8();     // Using PE5 (AIN8)
     MatrixKeypad_Init();
-    LCD_Init();
+    LCD_init();
     LCD_Clear();
 
     SignalInfo data;
@@ -36,7 +46,7 @@ int main(void) {
     static uint8_t keyHeld = 0;
 
     while (1) {
-        key = MatrixKeypad_Scan();  // Lower-level scan gives more control
+        key = MatrixKeypad_Scan();
 
         if (key && !keyHeld) {
             keyHeld = 1;
@@ -48,7 +58,7 @@ int main(void) {
         }
 
         if (!key) {
-            keyHeld = 0;  // Reset when key is released
+            keyHeld = 0;
         }
     }
 }
@@ -62,41 +72,52 @@ SignalInfo measure_signal(void) {
     uint32_t samples = 0;
     uint32_t timeout = 0;
 
-    // Wait for rising edge (low to high)
+    // Ensure signal is low before starting
+    timeout = 0;
     do {
         val = ADC1_InCh8();
-        if (++timeout > MAX_SAMPLES) goto flatline;
+        if (++timeout > TIMEOUT_LIMIT) goto flatline;
+        delayMs(SAMPLE_DELAY_US);
+    } while (val >= THRESHOLD);
+
+    // Wait for rising edge (low to high)
+    timeout = 0;
+    do {
+        val = ADC1_InCh8();
+        if (++timeout > TIMEOUT_LIMIT) goto flatline;
+        delayMs(SAMPLE_DELAY_US);
     } while (val < THRESHOLD);
 
-    timeout = 0;
     // Count high time
-    while (val >= THRESHOLD && timeout++ < MAX_SAMPLES) {
+    timeout = 0;
+    while (val >= THRESHOLD && timeout++ < TIMEOUT_LIMIT) {
         if (val > high) high = val;
         sum += val;
         cntH++;
         samples++;
+        delayMs(SAMPLE_DELAY_US);
         val = ADC1_InCh8();
-        delayUs(SAMPLE_DELAY_US);  // Optional control
     }
 
-    timeout = 0;
     // Count low time
-    while (val < THRESHOLD && timeout++ < MAX_SAMPLES) {
+    timeout = 0;
+    while (val < THRESHOLD && timeout++ < TIMEOUT_LIMIT) {
         if (val < low) low = val;
         sum += val;
         cntL++;
         samples++;
+        delayMs(SAMPLE_DELAY_US);
         val = ADC1_InCh8();
-        delayUs(SAMPLE_DELAY_US);  // Optional control
     }
 
     if (cntH + cntL == 0) goto flatline;
 
-    float period = ((float)(cntH + cntL) * SAMPLE_DELAY_US); // In µs
-    float freq = 1000000.0f / period;
-    float duty = ((float)cntH / (cntH + cntL)) * 100.0f;
-    float v_high = adc_to_voltage((uint16_t)high);
-    float v_low = adc_to_voltage((uint16_t)low);
+    float total_samples = (float)(cntH + cntL);
+    float period = (double)((total_samples) * SAMPLE_DELAY_US) * 1000;
+    float freq = (1000000.0f / period);
+    float duty = (cntH * 100.0f) / total_samples;
+    float v_high = (((double) high * 3.3) / 4095)*3-(9.9/2);
+    float v_low = ((((double) low * 3.3) / 4095)*3-(9.9/2));
     float v_avg = adc_to_voltage((uint16_t)(sum / samples));
 
     SignalInfo result = { period, freq, duty, v_high, v_low, v_avg };
@@ -105,6 +126,8 @@ SignalInfo measure_signal(void) {
 flatline:
     // Return default struct indicating no signal
     SignalInfo fail = {0, 0, 0, 0, 0, 0};
+    LCD_command(1);
+    LCD_Str("No signal...");
     return fail;
 }
 
@@ -117,25 +140,24 @@ float adc_to_voltage(uint16_t val) {
 // Displays signal info based on key input
 void display_info(uint8_t key, SignalInfo data) {
     char str[20];
-    LCD_command(1);  // Clear screen
 
     switch (key) {
-        case '1':
-            sprintf(str, "Period: %.2f us", data.period_us);
-            break;
-        case '2':
-            sprintf(str, "Freq: %.2f Hz", data.frequency_hz);
-            break;
-        case '3':
-            sprintf(str, "Duty: %.2f %%", data.duty_cycle);
-            break;
         case '4':
-            sprintf(str, "High: %.2f V", data.high_v);
+            sprintf(str, "Per: %.2f us", data.period_us);
             break;
         case '5':
-            sprintf(str, "Low: %.2f V", data.low_v);
+            sprintf(str, "Freq: %.2f Hz", data.frequency_hz);
             break;
         case '6':
+            sprintf(str, "Duty: %.2f %%", data.duty_cycle);
+            break;
+        case '7':
+            sprintf(str, "High: %.2f V", data.high_v);
+            break;
+        case '8':
+            sprintf(str, "Low: %.2f V", data.low_v);
+            break;
+        case '9':
             sprintf(str, "Avg: %.2f V", data.average_v);
             break;
         default:
