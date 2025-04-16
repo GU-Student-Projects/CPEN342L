@@ -6,8 +6,8 @@
 #include "stdio.h"
 
 #define THRESHOLD 2000
+#define TIMEOUT 1000000
 
-// Struct to hold signal data
 typedef struct {
     float period_us;
     float frequency_hz;
@@ -22,101 +22,123 @@ void display_info(uint8_t key, SignalInfo data);
 float adc_to_voltage(uint16_t val);
 
 int main(void) {
-    ADC1_InitCh2();
+    // Initialize peripherals
     LCD_init();
-    Keypad_init();
-    LCD_command(1);
-
+    MatrixKeypad_Init();
+    ADC1_InitCh2();
+    
+    LCD_Clear(); // Clear display
+    
     while (1) {
-        SignalInfo data = measure_signal();
-        uint8_t key = Keypad_getKey();  // Poll or interrupt-based
-
-        display_info(key, data);
-        delayMs(500);
+        // Get keypad input with debouncing
+        char key = MatrixKeypad_GetKey();
+        
+        // Only update display when a new key is pressed
+        if (key != 0) {
+            SignalInfo data = measure_signal();
+            display_info(key, data);
+        }
     }
 }
 
-// Measures a square wave signal and returns relevant information
 SignalInfo measure_signal(void) {
     uint32_t cntH = 0, cntL = 0;
     uint16_t val;
-    float high = 0, low = 4095, sum = 0;
+    uint16_t high = 0, low = 4095;
+    uint32_t sum = 0;
     uint32_t samples = 0;
-
-    // Wait for signal to stabilize
+    uint32_t timeout = TIMEOUT;
+    
+    // Wait for rising edge or timeout
     do {
         val = ADC1_InCh2();
+        if (--timeout == 0) break;
     } while (val < THRESHOLD);
-
-    // Count one full cycle
-    while (val >= THRESHOLD) {
+    
+    // Measure high time
+    timeout = TIMEOUT;
+    while (val >= THRESHOLD && timeout--) {
         if (val > high) high = val;
         sum += val;
         cntH++;
         val = ADC1_InCh2();
         samples++;
     }
-
-    while (val < THRESHOLD) {
+    
+    // Measure low time
+    timeout = TIMEOUT;
+    while (val < THRESHOLD && timeout--) {
         if (val < low) low = val;
         sum += val;
         cntL++;
         val = ADC1_InCh2();
         samples++;
     }
-
-    float period = ((float)(cntH + cntL) / 250000.0f) * 1e6f;
+    
+    // Calculate signal parameters
+    float period = ((float)(cntH + cntL) / 250000.0f) * 1e6f; // Convert to microseconds
     float freq = 1000000.0f / period;
-    float duty = ((float)cntH / (cntH + cntL)) * 100.0f;
-    float v_high = adc_to_voltage((uint16_t)high);
-    float v_low = adc_to_voltage((uint16_t)low);
-    float v_avg = adc_to_voltage((uint16_t)(sum / samples));
-
+    float duty = (float)cntH / (cntH + cntL);
+    float v_high = adc_to_voltage(high);
+    float v_low = adc_to_voltage(low);
+    float v_avg = duty * v_high + (1.0f - duty) * v_low; // Calculate average voltage like in working code
+    
     SignalInfo result = {
         .period_us = period,
         .frequency_hz = freq,
-        .duty_cycle = duty,
+        .duty_cycle = duty * 100.0f, // Convert to percentage
         .high_v = v_high,
         .low_v = v_low,
         .average_v = v_avg
     };
-
+    
     return result;
 }
 
-// Converts 12-bit ADC value to voltage assuming 3.3V range
 float adc_to_voltage(uint16_t val) {
-    return (val * 3.3f) / 4095.0f;
+    float v_adc = (val * 3.3f) / 4095.0f; // ADC gives 0-3.3V
+    // Match the voltage calculation from the working code
+    float v_signal = (v_adc * 3.0f) - (9.9f / 2.0f);
+    return v_signal;
 }
 
-// Displays signal info based on key input
 void display_info(uint8_t key, SignalInfo data) {
-    char str[20];
-    LCD_command(1);
-
+    char buf[20];
+    
+    LCD_Clear(); // Clear display
+    
     switch (key) {
         case '1':
-            sprintf(str, "Period: %.2f us", data.period_us);
+            LCD_Str("Period");
+            sprintf(buf, "%.2fus", data.period_us);
             break;
         case '2':
-            sprintf(str, "Freq: %.2f Hz", data.frequency_hz);
+            LCD_Str("Freq");
+            sprintf(buf, "%.2fHz", data.frequency_hz);
             break;
         case '3':
-            sprintf(str, "Duty: %.2f %%", data.duty_cycle);
+            LCD_Str("DutyCycle");
+            sprintf(buf, "%.2f%%", data.duty_cycle);
             break;
         case '4':
-            sprintf(str, "High: %.2f V", data.high_v);
+            LCD_Str("HighVolts");
+            sprintf(buf, "%.2fV", data.high_v);
             break;
         case '5':
-            sprintf(str, "Low: %.2f V", data.low_v);
+            LCD_Str("LowVolts");
+            sprintf(buf, "%.2fV", data.low_v);
             break;
         case '6':
-            sprintf(str, "Avg: %.2f V", data.average_v);
+            LCD_Str("AvgVolts");
+            sprintf(buf, "%.2fV", data.average_v);
             break;
         default:
-            sprintf(str, "Invalid key: %c", key);
+            LCD_Str("ERROR");
+            sprintf(buf, "");
             break;
     }
-
-    LCD_Str(str);
+    
+    // Move to second line and display the value
+    LCD_SetCursor(1, 0); // row 1 (second row), column 0 (first position)
+    LCD_Str(buf);
 }
