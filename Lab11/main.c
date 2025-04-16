@@ -29,15 +29,26 @@ int main(void) {
     
     LCD_Clear(); // Clear display
     
+    char lastKey = 0;  // To keep track of the last key pressed
+    
     while (1) {
-        // Get keypad input with debouncing
-        char key = MatrixKeypad_GetKey();
+        // Scan keypad directly for faster response
+        char key = MatrixKeypad_Scan();
         
         // Only update display when a new key is pressed
-        if (key != 0) {
+        if (key != 0 && key != lastKey) {
+            lastKey = key;
             SignalInfo data = measure_signal();
             display_info(key, data);
         }
+        
+        // Reset lastKey when no key is pressed
+        if (key == 0) {
+            lastKey = 0;
+        }
+        
+        // Small delay to prevent excessive CPU usage
+        delayMs(10);
     }
 }
 
