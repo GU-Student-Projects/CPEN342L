@@ -1,122 +1,31 @@
-#include "adc_driver.h"
+#include "TM4C123GH6PM.h"
 
-void ADC0_InitCh8(void) {
+void ADC1_InitCh8(void) {
     volatile uint32_t delay;
-    
-    // Activate clocks
-    SYSCTL->RCGCADC |= 0x01;      // Activate ADC0
-    SYSCTL->RCGCGPIO |= 0x10;     // Activate clock for Port E
-    delay = SYSCTL->RCGCGPIO;     // Allow clock to stabilize
-    
-    // Configure Port E pin 5 (AIN8)
-    GPIOE->DIR   &= ~0x20;        // Make PE5 input
-    GPIOE->AFSEL |=  0x20;        // Enable alternate function
-    GPIOE->DEN   &= ~0x20;        // Disable digital I/O
-    GPIOE->AMSEL |=  0x20;        // Enable analog functionality
-    
-    // Configure ADC0 sequencer 2
-    ADC0->PC     = 0x05;          // 500K samples/sec
-    ADC0->SSPRI  = 0x3210;        // Set sequencer priorities
-    ADC0->ACTSS &= ~0x0004;       // Disable sequencer 2 before config
-    ADC0->EMUX  &= ~0x0F00;       // Software trigger
-    ADC0->SSMUX2 = ADC_CHANNEL;   // Select AIN8
-    ADC0->SSCTL2 = 0x0006;        // Set IE0 and END0 bits
-    ADC0->IM    &= ~0x0004;       // Disable interrupts
-    ADC0->ACTSS |=  0x0004;       // Enable sequencer 2
+
+    SYSCTL->RCGCADC |= 0x02;    // Activate ADC1 clock
+    SYSCTL->RCGCGPIO |= 0x10;   // Activate Port E clock
+    delay = SYSCTL->RCGCGPIO;   // Wait for stabilization
+
+    GPIOE->DIR &= ~0x20;        // PE5 as input
+    GPIOE->AFSEL |= 0x20;       // Enable alternate function on PE5
+    GPIOE->DEN &= ~0x20;        // Disable digital I/O
+    GPIOE->AMSEL |= 0x20;       // Enable analog mode on PE5
+
+    ADC1->PC = 0x01;            // 125K samples/sec
+    ADC1->SSPRI = 0x3210;       // Sequencer 3 lowest priority
+    ADC1->ACTSS &= ~0x08;       // Disable SS3 during setup
+    ADC1->EMUX &= ~0xF000;      // Software trigger
+    ADC1->SSMUX3 = 8;           // Set to AIN8 (PE5)
+    ADC1->SSCTL3 = 0x06;        // IE0 + END0
+    ADC1->IM &= ~0x08;          // Disable SS3 interrupt
+    ADC1->ACTSS |= 0x08;        // Enable SS3
 }
 
-// Optimized ADC sample reading
-inline uint32_t sampleReading(void) {
-    ADC0->PSSI = 0x0004;                 // Initiate SS2
-    while(!(ADC0->RIS & 0x04)) { }       // Wait for conversion (optimized)
-    uint32_t result = ADC0->SSFIFO2 & 0xFFF; // Read 12-bit result
-    ADC0->ISC = 0x0004;                  // Clear completion flag
+uint16_t ADC1_InCh8(void) {
+    ADC1->PSSI = 0x08;               // Start conversion
+    while ((ADC1->RIS & 0x08) == 0); // Wait for completion
+    uint16_t result = ADC1->SSFIFO3 & 0xFFF;  // Read 12-bit result
+    ADC1->ISC = 0x08;                // Clear completion flag
     return result;
-}
-
-// Skip a fixed number of samples
-inline void skipSamples(int count) {
-    for (int i = 0; i < count; i++) {
-        sampleReading();
-    }
-}
-
-// Wait for signal to cross threshold (rising or falling)
-inline void waitForCrossing(uint8_t rising) {
-    uint32_t reading;
-    if (rising) {
-        // Wait for rising edge
-        while ((reading = sampleReading()) < THRESHOLD) { }
-    } else {
-        // Wait for falling edge
-        while ((reading = sampleReading()) >= THRESHOLD) { }
-    }
-}
-
-void findValues(uint32_t *high, uint32_t *low, uint32_t *count, uint32_t *disp) {
-    // Wait for rising edge
-    waitForCrossing(1);
-    
-    // Skip offset samples
-    skipSamples(SAMPLE_OFFSET);
-    
-    // Read high value
-    *high = sampleReading();
-    
-    // Wait for falling edge
-    waitForCrossing(0);
-    
-    // Skip offset samples
-    skipSamples(SAMPLE_OFFSET);
-    
-    // Read low value
-    *low = sampleReading();
-    
-    // Initialize count and display flags
-    *count = 0;
-    *disp = 1;
-}
-
-uint32_t sampleHighDuration(void) {
-    uint32_t count = 0;
-    uint32_t reading = sampleReading();
-    
-    // Handle case where signal is already high
-    if (reading > THRESHOLD) {
-        // Wait for falling edge
-        waitForCrossing(0);
-        
-        // Skip offset samples
-        skipSamples(SAMPLE_OFFSET);
-    }
-    
-    // Wait for rising edge
-    waitForCrossing(1);
-    
-    // Count samples during high period
-    do {
-        count++;
-        reading = sampleReading();
-    } while (reading >= THRESHOLD);
-    
-    return count;
-}
-
-uint32_t samplePeriodDuration(void) {
-    uint32_t count = 0;
-    
-    // Wait for rising edge
-    waitForCrossing(1);
-    
-    // Count high period samples
-    while (sampleReading() >= THRESHOLD) {
-        count++;
-    }
-    
-    // Count low period samples
-    while (sampleReading() < THRESHOLD) {
-        count++;
-    }
-    
-    return count;
 }
