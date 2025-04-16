@@ -17,7 +17,7 @@ Description: Implementation of DSA
 #define THRESHOLD 2000
 #define MAX_SAMPLES 10000
 #define TIMEOUT_LIMIT MAX_SAMPLES
-#define SAMPLE_DELAY_US 2
+#define SAMPLE_DELAY_US 50
 
 // Struct to hold signal data
 typedef struct {
@@ -77,7 +77,7 @@ SignalInfo measure_signal(void) {
     do {
         val = ADC1_InCh8();
         if (++timeout > TIMEOUT_LIMIT) goto flatline;
-        delayMs(SAMPLE_DELAY_US);
+        delayUs(SAMPLE_DELAY_US);
     } while (val >= THRESHOLD);
 
     // Wait for rising edge (low to high)
@@ -85,7 +85,7 @@ SignalInfo measure_signal(void) {
     do {
         val = ADC1_InCh8();
         if (++timeout > TIMEOUT_LIMIT) goto flatline;
-        delayMs(SAMPLE_DELAY_US);
+        delayUs(SAMPLE_DELAY_US);
     } while (val < THRESHOLD);
 
     // Count high time
@@ -95,7 +95,7 @@ SignalInfo measure_signal(void) {
         sum += val;
         cntH++;
         samples++;
-        delayMs(SAMPLE_DELAY_US);
+        delayUs(SAMPLE_DELAY_US);
         val = ADC1_InCh8();
     }
 
@@ -106,7 +106,7 @@ SignalInfo measure_signal(void) {
         sum += val;
         cntL++;
         samples++;
-        delayMs(SAMPLE_DELAY_US);
+        delayUs(SAMPLE_DELAY_US);
         val = ADC1_InCh8();
     }
 
