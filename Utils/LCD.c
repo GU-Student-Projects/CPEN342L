@@ -12,7 +12,7 @@ Description: Implementation of LCD control functions
 #include "LCD.h" 
 #include "delay.h"
 
-void LCD_init(void) { 
+void LCD_Init(void) { 
     PORTS_init(); 
     delayMs(20); // LCD controller reset sequence 
     LCD_nibble_write(0x30, 0); 

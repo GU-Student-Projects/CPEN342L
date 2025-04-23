@@ -20,7 +20,7 @@ Description: Header file for LCD control functions
 #define LCD_LINE2 0xC0
 
 void PORTS_init(void);                  // Initialize GPIO ports for LCD
-void LCD_init(void);                    // Initialize LCD
+void LCD_Init(void);                    // Initialize LCD
 void LCD_nibble_write(char data, unsigned char control); // Write 4-bits to LCD
 void LCD_command(unsigned char command); // Send command to LCD
 void LCD_data(char data);               // Send data to LCD
