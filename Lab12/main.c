@@ -2,7 +2,7 @@
 Author: Gabe DiMartino
 Lab: Stepper Motor Control
 Date Created: April 22, 2025
-Description: Main program to test stepper motor movement
+Description: FSM-based main program to test stepper motor movement
 ****************************************************************************/
 
 #include "stepper.h"
@@ -10,37 +10,63 @@ Description: Main program to test stepper motor movement
 #include "Keypad.h"
 #include "LCD.h"
 
+typedef enum {
+    STATE_WAIT_DISTANCE,
+    STATE_WAIT_DIRECTION,
+    STATE_MOVE
+} FSMState;
+
 int main(void) {
     Stepper_Init();
-    Keypad_Init();
+    MatrixKeypad_Init();
     LCD_Init();
 
+    FSMState currentState = STATE_WAIT_DISTANCE;
     uint8_t distance = 0;
     int8_t direction = 1;
 
     while (1) {
-        LCD_Clear();
-        LCD_Str("Enter distance:");
+        switch (currentState) {
+            case STATE_WAIT_DISTANCE:
+                LCD_Clear();
+                LCD_Str("Enter distance:");
+                while (1) {
+                    char key = MatrixKeypad_GetKey();
+                    if (key >= '0' && key <= '9') {
+                        distance = key - '0';
+                        currentState = STATE_WAIT_DIRECTION;
+                        break;
+                    }
+                }
+                break;
 
-        char key =  MatrixKeypad_GetKey(); // waits for key 0-9
-        if (key >= '0' && key <= '9') {
-            distance = key - '0';
+            case STATE_WAIT_DIRECTION:
+                LCD_Clear();
+                LCD_Str("Dir: * = CW  # = CCW");
+                while (1) {
+                    char dirKey = MatrixKeypad_GetKey();
+                    if (dirKey == 'E') {
+                        direction = 1;
+                        currentState = STATE_MOVE;
+                        break;
+                    } else if (dirKey == 'F') {
+                        direction = -1;
+                        currentState = STATE_MOVE;
+                        break;
+                    }
+                }
+                break;
 
-            LCD_Clear();
-            LCD_Str("Dir: * = CW  # = CCW");
+            case STATE_MOVE:
+                LCD_Clear();
+                LCD_Str("Moving ");
+                LCD_data(direction == 1 ? '+' : '-');
+                LCD_data(distance + '0'); // Show distance
 
-            char dirKey =  MatrixKeypad_GetKey(); // waits for * or #
-            if (dirKey == '*') direction = 1;
-            else if (dirKey == '#') direction = -1;
-            else continue; // ignore invalid input
-
-            LCD_Clear();
-            LCD_Str("Moving ");
-            LCD_data(direction == 1 ? '+' : '-');
-            LCD_data(key); // Show distance
-
-            Stepper_Seek(distance, 5, direction); // 5 ms per step delay
-            delayMs(1000); // pause before next loop
+                Stepper_Seek(distance, 5, direction); // 5 ms delay per step
+                delayMs(1000);
+                currentState = STATE_WAIT_DISTANCE;
+                break;
         }
     }
 }

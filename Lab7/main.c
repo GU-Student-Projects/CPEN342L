@@ -22,7 +22,7 @@ int main(void) {
     LCD_SetCursor(0, 0);
     LCD_Str("Reaction Timer");
     LCD_SetCursor(1, 0);
-    LCD_Str("Press SW1 start");
+    LCD_Str("Press SW2 start");
     
     while (1) {
         uint8_t status = ReactionTimer_Status();  // Changed from ReactionTime_Status
@@ -48,7 +48,7 @@ int main(void) {
             // Prompt for a new measurement
             LCD_Clear();
             LCD_SetCursor(0, 0);
-            LCD_Str("Press SW1 to");
+            LCD_Str("Press SW2 to");
             LCD_SetCursor(1, 0);
             LCD_Str("start again");
             
@@ -62,7 +62,7 @@ int main(void) {
             LCD_SetCursor(0, 0);
             LCD_Str("LED is ON");
             LCD_SetCursor(1, 0);
-            LCD_Str("Press SW2 now!");
+            LCD_Str("Press SW1 now!");
             
             // Wait a bit to avoid repeated display updates
             delayMs(100);

@@ -15,26 +15,19 @@ Outputs: 3x5 LED Display
 #include <stdint.h>
 
 int main(void) {
-    uint8_t switchValue, prevSwitchValue = 0xFF;
+    uint8_t switchValue;
+    
     // Initialize peripherals
     DIPSwitch_Init();
-    GPIO_Init();  // Ensure GPIO for LED matrix is set up
+    GPIO_Init();
 
     while (1) {
         // Read DIP switch input
-        switchValue = DIPSwitch_Read();
+        switchValue = DIPSwitch_Read(); 
 
-        // Only update display if switch value changes
-        if (switchValue != prevSwitchValue) {
-            prevSwitchValue = switchValue;
+        // Display hex digi t on LED matrix
+        display_hex_digit(switchValue);
 
-            // Display hex digit on LED matrix
-            display_hex_digit(switchValue);
-        }
-
-        delayMs(50);  // Debounce delay
     }
-
     return 0;
 }
-

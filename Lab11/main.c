@@ -1,12 +1,3 @@
-/**************************************************************************** 
-Author: Gabe DiMartino 
-Lab: Digital Signal Analyzer 
-Date Created: April 15, 2025 
-Last Modified: April 15, 2025 
-Description: Implementation of DSA
-
-****************************************************************************/  
-
 #include "TM4C123GH6PM.h"
 #include "adc_driver.h"
 #include "LCD.h"
@@ -113,7 +104,7 @@ SignalInfo measure_signal(void) {
     if (cntH + cntL == 0) goto flatline;
 
     float total_samples = (float)(cntH + cntL);
-    float period = (double)((total_samples) * SAMPLE_DELAY_US) * 1000;
+    float period = (double)((total_samples) * 2) * 10;
     float freq = (1000000.0f / period);
     float duty = (cntH * 100.0f) / total_samples;
     float v_high = (((double) high * 3.3) / 4095)*3-(9.9/2);

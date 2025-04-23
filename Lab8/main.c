@@ -1,11 +1,3 @@
-/****************************************************************************
-Author: Gabe DiMartino
-Lab: PWM and DC Motor
-Date Created: March 18, 2025
-Last Modified: March 18, 2025
-Description: DC motor lab
-****************************************************************************/
-
 #include "LCD.h"
 #include "Keypad.h"
 #include "delay.h"

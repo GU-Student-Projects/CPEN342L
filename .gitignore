@@ -9,3 +9,12 @@ Objects/
 Listings/
 *kate-swp
 *.mbaker11
+*.crf
+*.d
+*.o
+*.dep
+*.axf
+*.htm
+*.lnp
+*.map
+*.lst
